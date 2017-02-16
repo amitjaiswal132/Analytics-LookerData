@@ -5,10 +5,6 @@ from analytics_common.commons.retry import retry
 from analytics_common.threads.thread_with_stop_event import ThreadWithStopEvent
 from daily_queries.settings import *
 
-
-from daily_queries.settings import LOOKER_LOOKUP_RUN_API_URL
-
-
 class QueryHandler(ThreadWithStopEvent):
 
     logger = logging.getLogger(__name__)

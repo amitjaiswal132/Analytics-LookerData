@@ -1,18 +1,17 @@
 import sys
+import os
+import json
+import requests
+
+import datetime
+
 from daily_queries.settings import *
 
 from optparse import OptionParser
 import logging.config
-import os
-import json
-import requests
 from analytics_common.utils.io_utils import IOUtils
 from daily_queries.handlers.QueryHandler import QueryHandler
 from analytics_common.utils.datetime_utils import DatetimeUtils
-
-logging.config.fileConfig(LOG_CONFIG, disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
-
 
 def parse_arguments():
     parser = OptionParser()
@@ -45,11 +44,11 @@ def _get_look_id_list(access_token, dashboards=None, look_ids=None):
     dashboard_to_process={}
 
     if dashboards is not None:
-        for dboard in dashboards.split(","):
+        for dashboard in dashboards.split(","):
             if look_ids is not None:
-                dashboard_to_process[dboard]=look_ids
+                dashboard_to_process[dashboard]=look_ids
             else:
-                dashboard_to_process[dboard]=get_dashboard_look_id(dboard)
+                dashboard_to_process[dashboard]=get_dashboard_look_id(dashboard)
     else:
         dashboard_to_process = get_dashboard_queries()
 

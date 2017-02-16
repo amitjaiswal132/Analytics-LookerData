@@ -1,6 +1,5 @@
 import pkg_resources
 import os
-import time
 from datetime import datetime
 from daily_queries.settings import ENV_PREFIX
 

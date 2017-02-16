@@ -1,0 +1,1 @@
+from daily_queries.settings.common import *
