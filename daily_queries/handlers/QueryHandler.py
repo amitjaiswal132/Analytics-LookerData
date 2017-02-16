@@ -1,4 +1,4 @@
-from datetime import time
+import time
 import logging
 import requests
 from analytics_common.commons.retry import retry
