@@ -48,7 +48,7 @@ def _get_look_id_list(access_token, dashboards=None, look_ids=None):
             if look_ids is not None:
                 dashboard_to_process[dashboard]=look_ids
             else:
-                dashboard_to_process[dashboard]=get_dashboard_look_id(dashboard)
+                dashboard_to_process[dashboard] = ""
     else:
         dashboard_to_process = get_dashboard_queries()
 
