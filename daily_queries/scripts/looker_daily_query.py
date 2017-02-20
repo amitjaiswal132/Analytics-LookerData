@@ -36,8 +36,8 @@ def parse_arguments():
     parser.add_option("-n", "--nagios-hour-threshold",
                       dest="nagios_hour_threshold", default=12, type="int",
                       help="queries scheduled after this hour (ist) will not trigger nagios [default: %default]")
-    parser.add_option("--cache",
-                      dest="cache", default=False, action="store_true",
+    parser.add_option("--use-cache",
+                      dest="use_cache", default=False, action="store_true",
                       help="if cache is to be used  [default: %default]")
 
     (options, args) = parser.parse_args()
@@ -70,7 +70,7 @@ def _get_look_id_list(access_token, dashboards=None, look_ids=None):
         for keys in dashboard_res['dashboard_elements']:
             if len(dashboard_to_process[dashboard])==0 or str(keys['look_id']) in dashboard_to_process[dashboard]:
                 look_run_id.append(keys['look_id'])
-                look_id_dahboard({keys['look_id'], dashboard})
+                look_id_dahboard[keys['look_id']]= dashboard
 
         logger.info( "list of look_id for be warmed up : %s",look_run_id)
     return look_run_id, look_id_dahboard
@@ -103,7 +103,7 @@ def main():
         if len(running_query_handler) >= parallel_runs:
             QueryHandler.wait_for_complete_and_remove(running_query_handler)
         try:
-            run_query = QueryHandler(look_id_dahboard.get(look_id), look_id, options.cache, access_token, date_str)
+            run_query = QueryHandler(look_id_dahboard.get(look_id), look_id, options.use_cache, access_token, date_str)
             run_query.start()
             running_query_handler.append(run_query)
         except Exception, e:
