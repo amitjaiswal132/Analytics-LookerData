@@ -23,8 +23,8 @@ setup(
         'requests == 2.9.1',
         'psycopg2 == 2.6.1',
         'Analytics-CommonUtilities >= 3.2.1',
-        'Analytics-DailyUpdate >= 3.2.1',
-        'python-dateutil >= 3.0'
+        'Analytics-DailyUpdate >= 3.0',
+        'python-dateutil >= 2.6.0'
     ],
     dependency_links = [
         "https://gdeploy:a13e8c8e9da9c0f06643146abd78ab1261934808@github.com/hike/Analytics-CommonUtilities/archive/master.zip#egg=Analytics-CommonUtilities-3.2.1"

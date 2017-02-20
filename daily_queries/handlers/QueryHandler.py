@@ -12,13 +12,15 @@ class QueryHandler(ThreadWithStopEvent):
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self, look_id, token):
+    def __init__(self, dashboard, look_id, cached, token, date_str):
 
         ThreadWithStopEvent.__init__(self)
         self.look_id = look_id
         self.token = token
         self.complete = False
         self.date_str = date_str
+        self.dashboard = dashboard
+        self.cached = cached
 
     def run(self):
         job="Starting thread for look id %s" %(self.look_id)
@@ -43,16 +45,19 @@ class QueryHandler(ThreadWithStopEvent):
         QueryHandler.logger.info("Starting look id %s \n",self.look_id)
 
         myheader = 'token %s' % (self.token)
-        run_query_url = LOOKER_LOOKUP_RUN_API_URL % (self.look_id)
+        run_query_url = LOOKER_LOOKUP_RUN_API_URL % (self.look_id, self.cached)
         response = requests.get(run_query_url,
                                  headers={'Authorization': myheader})
 
-        QueryHandler.logger.info("############## %s ##############",self.look_id)
+        QueryHandler.logger.info("############## %s %s ##############",self.look_id, self.date_str)
         query_start_time = datetime.now(pytz.utc)
         QueryHandler.logger.info(response.content)
         query_end_time = datetime.now(pytz.utc)
-        ApiHandler.push_metric_to_opentsdb("looker_query", self.look_id, False, self.date_str,
-                                           LOOKER_METRIC_NAME, (query_start_time - query_end_time).seconds)
+        name = "%s-%s" % (self.dashboard, self.look_id)
+
+        looker_metric_name = LOOKER_METRIC_NAME % ("cached") if self.cached else LOOKER_METRIC_NAME % ("db")
+        ApiHandler.push_metric_to_opentsdb("looker_query", name, True, self.date_str,
+                                           looker_metric_name, (query_start_time - query_end_time).seconds)
         QueryHandler.logger.info("##################################")
 
     def _decide_stop_retry(self, attempt_number, delay):

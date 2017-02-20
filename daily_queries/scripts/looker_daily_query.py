@@ -36,6 +36,9 @@ def parse_arguments():
     parser.add_option("-n", "--nagios-hour-threshold",
                       dest="nagios_hour_threshold", default=12, type="int",
                       help="queries scheduled after this hour (ist) will not trigger nagios [default: %default]")
+    parser.add_option("--cache",
+                      dest="cache", default=False, action="store_true",
+                      help="if cache is to be used  [default: %default]")
 
     (options, args) = parser.parse_args()
     return parser, options, args
@@ -57,6 +60,7 @@ def _get_look_id_list(access_token, dashboards=None, look_ids=None):
     # Generate look_id list.
     # look id being passed from command have to be white listed
     look_run_id = []
+    look_id_dahboard = {}
     for dashboard in dashboard_to_process:
         #Verify all look_id from the dashboard api call of looker
         dashboard_url = LOOKER_DASHBOARD_API_URL % (dashboard)
@@ -66,9 +70,10 @@ def _get_look_id_list(access_token, dashboards=None, look_ids=None):
         for keys in dashboard_res['dashboard_elements']:
             if len(dashboard_to_process[dashboard])==0 or str(keys['look_id']) in dashboard_to_process[dashboard]:
                 look_run_id.append(keys['look_id'])
+                look_id_dahboard({keys['look_id'], dashboard})
 
         logger.info( "list of look_id for be warmed up : %s",look_run_id)
-    return look_run_id
+    return look_run_id, look_id_dahboard
 
 
 def main():
@@ -77,7 +82,8 @@ def main():
     parallel_runs = options.parallel_runs
     nagios = False if DatetimeUtils.cur_ist_time().hour > options else True
     dashboards = options.dashboards if options.dashboards is not None else get_dashboard_queries()
-    date_str = datetime.strptime(DatetimeUtils.cur_utc_time(), "%Y-%m-%d-%H")
+    date_str = datetime.now().strftime("%Y-%m-%d-%H")
+
     #Get Auth token
     cmd = '''curl -d  "client_id=%s&client_secret=%s"  %s''' % (options.client_id, options.client_secret, LOOKER_API_LOGIN)
     resposne = os.popen(cmd).read()
@@ -89,12 +95,15 @@ def main():
     running_query_handler = []
 
     error_msgs = ""
-
-    for look_id in _get_look_id_list(access_token,options.dashboards, options.look_ids):
+    look_run_id = []
+    look_id_dahboard = {}
+    run_query = ""
+    look_run_id, look_id_dahboard = _get_look_id_list(access_token, options.dashboards, options.look_ids)
+    for look_id in look_run_id:
         if len(running_query_handler) >= parallel_runs:
             QueryHandler.wait_for_complete_and_remove(running_query_handler)
         try:
-            run_query = QueryHandler(look_id, access_token, date_str)
+            run_query = QueryHandler(look_id_dahboard.get(look_id), look_id, options.cache, access_token, date_str)
             run_query.start()
             running_query_handler.append(run_query)
         except Exception, e:
