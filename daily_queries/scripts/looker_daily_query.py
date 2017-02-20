@@ -77,7 +77,7 @@ def main():
     parallel_runs = options.parallel_runs
     nagios = False if DatetimeUtils.cur_ist_time().hour > options else True
     dashboards = options.dashboards if options.dashboards is not None else get_dashboard_queries()
-
+    date_str = datetime.strptime(DatetimeUtils.cur_utc_time(), "%Y-%m-%d-%H")
     #Get Auth token
     cmd = '''curl -d  "client_id=%s&client_secret=%s"  %s''' % (options.client_id, options.client_secret, LOOKER_API_LOGIN)
     resposne = os.popen(cmd).read()
@@ -94,7 +94,7 @@ def main():
         if len(running_query_handler) >= parallel_runs:
             QueryHandler.wait_for_complete_and_remove(running_query_handler)
         try:
-            run_query = QueryHandler(look_id, access_token)
+            run_query = QueryHandler(look_id, access_token, date_str)
             run_query.start()
             running_query_handler.append(run_query)
         except Exception, e:

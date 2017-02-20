@@ -1,9 +1,12 @@
 import time
 import logging
+
+import pytz
 import requests
 from analytics_common.commons.retry import retry
 from analytics_common.threads.thread_with_stop_event import ThreadWithStopEvent
 from daily_queries.settings import *
+from daily_update.handlers.api_handler import ApiHandler
 
 class QueryHandler(ThreadWithStopEvent):
 
@@ -15,6 +18,7 @@ class QueryHandler(ThreadWithStopEvent):
         self.look_id = look_id
         self.token = token
         self.complete = False
+        self.date_str = date_str
 
     def run(self):
         job="Starting thread for look id %s" %(self.look_id)
@@ -44,7 +48,11 @@ class QueryHandler(ThreadWithStopEvent):
                                  headers={'Authorization': myheader})
 
         QueryHandler.logger.info("############## %s ##############",self.look_id)
+        query_start_time = datetime.now(pytz.utc)
         QueryHandler.logger.info(response.content)
+        query_end_time = datetime.now(pytz.utc)
+        ApiHandler.push_metric_to_opentsdb("looker_query", self.look_id, False, self.date_str,
+                                           LOOKER_METRIC_NAME, (query_start_time - query_end_time).seconds)
         QueryHandler.logger.info("##################################")
 
     def _decide_stop_retry(self, attempt_number, delay):

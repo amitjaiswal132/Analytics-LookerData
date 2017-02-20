@@ -16,6 +16,7 @@ LOOKER_DASHBOARD_API_URL = LOOKER_API_URL + "/dashboards/%s"
 LOOKER_LOOKUP_QUERY_API_URL = LOOKER_API_URL + "/looks/%s/run/sql?cache=true"
 LOOKER_LOOKUP_RUN_API_URL = LOOKER_API_URL + "/looks/%s/run/json?cache=false"
 LOOKER_CACHED_LOOKUP_RUN_API_URL = LOOKER_API_URL + "/looks/%s/run/json?cache=true"
+LOOKER_METRIC_NAME = "looker_query_runtime"
 
 LOOKER_DEFAULT_CLIENT_ID = "3Z2h9thmV5XSvpvdDSDt"
 LOOKER_DEFAULT_CLIENT_SECRET = "8RwXbMWPgZmhYWf5tkwtxzty"
