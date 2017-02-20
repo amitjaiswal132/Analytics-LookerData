@@ -39,6 +39,17 @@ class QueryHandler(ThreadWithStopEvent):
     def mark_completed(self):
         self.complete = True
 
+    @staticmethod
+    def push_metric_to_opentsdb(job_type, name, is_hourly, instance, metric, value, status="success"):
+        try:
+            job_type, job_frequency, bounded_instance, timestamp = Utils.get_tags_of_job_execution(job_type, name,
+                                                                                                   is_hourly, instance)
+            ApiHandler.push_job_execution_metric_to_opentsdb(metric, value, timestamp, job_type, bounded_instance,
+                                                             job_frequency, status)
+            QueryHandler.logger.info('Execution push to opentsdb latency metric successful')
+        except Exception as e:
+            QueryHandler.logger.error('Failed to execute : push to opentsdb %s', str(e.message))
+
     @retry(always_retry=True, is_instance_method=True, wait_fixed=5000, stop_func="_decide_stop_retry")
     def _execute_query(self):
 
@@ -56,7 +67,7 @@ class QueryHandler(ThreadWithStopEvent):
         name = "%s-%s" % (self.dashboard, self.look_id)
 
         looker_metric_name = LOOKER_METRIC_NAME % ("cached") if self.cached else LOOKER_METRIC_NAME % ("db")
-        ApiHandler.push_metric_to_opentsdb("looker_query", name, True, self.date_str,
+        QueryHandler.push_metric_to_opentsdb("looker_query", name, True, self.date_str,
                                            looker_metric_name, (query_start_time - query_end_time).seconds)
         QueryHandler.logger.info("##################################")
 
