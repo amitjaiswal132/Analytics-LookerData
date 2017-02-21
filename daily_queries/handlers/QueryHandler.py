@@ -7,6 +7,7 @@ from analytics_common.commons.retry import retry
 from analytics_common.threads.thread_with_stop_event import ThreadWithStopEvent
 from daily_queries.settings import *
 from daily_update.handlers.api_handler import ApiHandler
+from daily_update.utils.utils import Utils
 
 class QueryHandler(ThreadWithStopEvent):
 
@@ -54,14 +55,14 @@ class QueryHandler(ThreadWithStopEvent):
     def _execute_query(self):
 
         QueryHandler.logger.info("Starting look id %s \n",self.look_id)
-
+        query_start_time = datetime.now(pytz.utc)
         myheader = 'token %s' % (self.token)
         run_query_url = LOOKER_LOOKUP_RUN_API_URL % (self.look_id, self.cached)
         response = requests.get(run_query_url,
                                  headers={'Authorization': myheader})
 
         QueryHandler.logger.info("############## %s %s ##############",self.look_id, self.date_str)
-        query_start_time = datetime.now(pytz.utc)
+
         QueryHandler.logger.info(response.content)
         query_end_time = datetime.now(pytz.utc)
         name = "%s-%s" % (self.dashboard, self.look_id)
