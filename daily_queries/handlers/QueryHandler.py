@@ -72,16 +72,14 @@ class QueryHandler(ThreadWithStopEvent):
     def _execute_query(self):
 
         QueryHandler.logger.info("Starting look id %s \n",self.look_id)
-        query_start_time = datetime.now(pytz.utc)
         myheader = 'token %s' % (self.token)
         run_query_url = LOOKER_LOOKUP_RUN_API_URL % (self.look_id, self.cached)
+        query_start_time = datetime.now(pytz.utc)
         response = requests.get(run_query_url,
                                  headers={'Authorization': myheader})
-
-        QueryHandler.logger.info("############## %s %s ##############",self.look_id, self.date_str)
-
-        QueryHandler.logger.info(response.content)
         query_end_time = datetime.now(pytz.utc)
+        QueryHandler.logger.info("############## %s %s ##############",self.look_id, self.date_str)
+        QueryHandler.logger.info(response.content)
 
         looker_metric_name = LOOKER_METRIC_NAME % ("cached") if self.cached else LOOKER_METRIC_NAME % ("db")
         QueryHandler.push_metric_to_opentsdb(self.dashboard, self.look_id, self.date_str,
