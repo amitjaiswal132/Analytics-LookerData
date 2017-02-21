@@ -7,7 +7,9 @@ from analytics_common.commons.retry import retry
 from analytics_common.threads.thread_with_stop_event import ThreadWithStopEvent
 from daily_queries.settings import *
 from daily_update.handlers.api_handler import ApiHandler
-from daily_update.utils.utils import Utils
+from analytics_common.commons.retry import retry
+from analytics_common.utils.retry_utils import RetryUtils
+
 
 class QueryHandler(ThreadWithStopEvent):
 
@@ -58,8 +60,8 @@ class QueryHandler(ThreadWithStopEvent):
         data["metric"] = metric
         data["value"] = value
         data["tags"] = {
-            "dashboardId": job_type,
-            "lookId": job_instance,
+            "dashboardId": dashboard_id,
+            "lookId": look_id,
             "jobInstance": job_instance
         }
         ApiHandler.logger.info("Job_execution: %s is to be posted to sniper", str(data))
@@ -80,7 +82,7 @@ class QueryHandler(ThreadWithStopEvent):
 
         QueryHandler.logger.info(response.content)
         query_end_time = datetime.now(pytz.utc)
-        
+
         looker_metric_name = LOOKER_METRIC_NAME % ("cached") if self.cached else LOOKER_METRIC_NAME % ("db")
         QueryHandler.push_metric_to_opentsdb(self.dashboard, self.look_id, self.date_str,
                                            looker_metric_name, (query_start_time - query_end_time).seconds)
