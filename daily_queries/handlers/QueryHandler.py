@@ -41,15 +41,30 @@ class QueryHandler(ThreadWithStopEvent):
         self.complete = True
 
     @staticmethod
-    def push_metric_to_opentsdb(job_type, name, is_hourly, instance, metric, value, status="success"):
+    def push_metric_to_opentsdb(dashboard_id, look_id, instance, metric, value):
         try:
-            job_type, job_frequency, bounded_instance, timestamp = Utils.get_tags_of_job_execution(job_type, name,
-                                                                                                   is_hourly, instance)
-            ApiHandler.push_job_execution_metric_to_opentsdb(metric, value, timestamp, job_type, bounded_instance,
-                                                             job_frequency, status)
+            bounded_instance = instance.split('-', 2)[-1]
+            timestamp = int(time.time())
+            QueryHandler.push_job_execution_metric_to_opentsdb(metric, value, timestamp, dashboard_id, look_id, bounded_instance)
             QueryHandler.logger.info('Execution push to opentsdb latency metric successful')
         except Exception as e:
             QueryHandler.logger.error('Failed to execute : push to opentsdb %s', str(e.message))
+
+    @staticmethod
+    @retry(always_retry=True, wait_fixed=2000, stop_func=RetryUtils.stop_after_n_attempts(3))
+    def push_job_execution_metric_to_opentsdb(metric, value, timestamp, dashboard_id, look_id, job_instance):
+        data = {}
+        data["timestamp"] = timestamp
+        data["metric"] = metric
+        data["value"] = value
+        data["tags"] = {
+            "dashboardId": job_type,
+            "lookId": job_instance,
+            "jobInstance": job_instance
+        }
+        ApiHandler.logger.info("Job_execution: %s is to be posted to sniper", str(data))
+        r = requests.post(SNIPER_END_POINT, json=data)
+        r.raise_for_status()
 
     @retry(always_retry=True, is_instance_method=True, wait_fixed=5000, stop_func="_decide_stop_retry")
     def _execute_query(self):
@@ -65,10 +80,9 @@ class QueryHandler(ThreadWithStopEvent):
 
         QueryHandler.logger.info(response.content)
         query_end_time = datetime.now(pytz.utc)
-        name = "%s-%s" % (self.dashboard, self.look_id)
-
+        
         looker_metric_name = LOOKER_METRIC_NAME % ("cached") if self.cached else LOOKER_METRIC_NAME % ("db")
-        QueryHandler.push_metric_to_opentsdb("looker_query", name, True, self.date_str,
+        QueryHandler.push_metric_to_opentsdb(self.dashboard, self.look_id, self.date_str,
                                            looker_metric_name, (query_start_time - query_end_time).seconds)
         QueryHandler.logger.info("##################################")
 
