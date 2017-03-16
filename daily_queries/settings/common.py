@@ -14,7 +14,7 @@ LOOKER_API_LOGIN = LOOKER_API_HOST + "/login"
 LOOKER_API_URL = LOOKER_API_HOST + "/api/3.0"
 LOOKER_DASHBOARD_API_URL = LOOKER_API_URL + "/dashboards/%s"
 LOOKER_LOOKUP_QUERY_API_URL = LOOKER_API_URL + "/looks/%s/run/sql?cache=true"
-LOOKER_LOOKUP_RUN_API_URL = LOOKER_API_URL + "/looks/%s/run/json?cache=%s"
+LOOKER_LOOKUP_RUN_API_URL = LOOKER_API_URL + "/looks/%s/run/json_detail?cache=%s"
 LOOKER_CACHED_LOOKUP_RUN_API_URL = LOOKER_API_URL + "/looks/%s/run/json?cache=true"
 LOOKER_METRIC_NAME = "hike.looker.query.latency.%s"
 

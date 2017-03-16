@@ -73,7 +73,7 @@ class QueryHandler(ThreadWithStopEvent):
 
         QueryHandler.logger.info("Starting look id %s \n",self.look_id)
         myheader = 'token %s' % (self.token)
-        run_query_url = LOOKER_LOOKUP_RUN_API_URL % (self.look_id, self.cached)
+        run_query_url = LOOKER_LOOKUP_RUN_API_URL % (self.look_id, str(self.cached).lower())
         query_start_time = datetime.now(pytz.utc)
         response = requests.get(run_query_url,
                                  headers={'Authorization': myheader})
